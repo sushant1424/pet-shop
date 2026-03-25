@@ -19,7 +19,7 @@ router.get('/bestsellers', async (req, res) => {
     const { rows } = await db.query('SELECT * FROM products WHERE sold > 0 ORDER BY sold DESC LIMIT 5');
     res.json(rows);
   } catch (err) {
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -29,7 +29,7 @@ router.get('/new', async (req, res) => {
     const { rows } = await db.query('SELECT * FROM products ORDER BY created_at DESC LIMIT 4');
     res.json(rows);
   } catch (err) {
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -65,7 +65,7 @@ router.get('/', async (req, res) => {
     const { rows } = await db.query(query, values);
     res.json(rows);
   } catch (err) {
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -76,7 +76,7 @@ router.get('/:id', async (req, res) => {
     if (rows.length === 0) return res.status(404).json({ error: 'Product not found' });
     res.json(rows[0]);
   } catch (err) {
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -91,7 +91,7 @@ router.post('/with-url', auth, async (req, res) => {
     );
     res.status(201).json(rows[0]);
   } catch (err) {
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -109,7 +109,7 @@ router.post('/', auth, upload.single('image'), async (req, res) => {
     );
     res.status(201).json(rows[0]);
   } catch (err) {
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -136,7 +136,7 @@ router.put('/:id', auth, upload.single('image'), async (req, res) => {
     
     res.json({ message: 'Product updated' });
   } catch (err) {
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: err.message });
   }
 });
 

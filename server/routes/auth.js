@@ -21,7 +21,7 @@ router.post('/signup', async (req, res) => {
     const token = jwt.sign({ id: newUser.rows[0].id, role: newUser.rows[0].role }, process.env.JWT_SECRET, { expiresIn: '1d' });
     res.json({ token, user: newUser.rows[0] });
   } catch (err) {
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -38,7 +38,7 @@ router.post('/login', async (req, res) => {
     const { password: _, ...userWithoutPassword } = user.rows[0];
     res.json({ token, user: userWithoutPassword });
   } catch (err) {
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -54,7 +54,7 @@ router.post('/create-admin', async (req, res) => {
     );
     res.json({ message: 'Admin created' });
   } catch (err) {
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: err.message });
   }
 });
 
