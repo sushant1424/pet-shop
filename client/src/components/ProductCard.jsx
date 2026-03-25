@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import useStore from '../store/useStore';
 import { getImageUrl } from '../lib/imageUrl';
 import api from '../lib/api';
@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 
 export default function ProductCard({ product }) {
   const { user, addToCart, favorites, addFavorite, removeFavorite } = useStore();
+  const navigate = useNavigate();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const imgSrc = getImageUrl(product.image_url);
   
@@ -68,7 +69,10 @@ export default function ProductCard({ product }) {
 
   return (
     <>
-      <div className="bg-white rounded-none shadow-[0_4px_20px_rgb(0,0,0,0.05)] border border-[#f5efde] transition-transform hover:-translate-y-1 group flex flex-col h-full relative overflow-hidden">
+      <div 
+        onClick={() => navigate(`/products/${product.id}`)}
+        className="bg-white rounded-none shadow-[0_4px_20px_rgb(0,0,0,0.05)] border border-[#f5efde] transition-transform hover:-translate-y-1 group flex flex-col h-full relative overflow-hidden cursor-pointer"
+      >
         {/* Favorite Icon */}
         <button 
           onClick={toggleFavorite}

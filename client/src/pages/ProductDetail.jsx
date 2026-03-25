@@ -12,6 +12,7 @@ export default function ProductDetail() {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   
   const { addToCart, user, favorites, addFavorite, removeFavorite } = useStore();
 
@@ -35,8 +36,8 @@ export default function ProductDetail() {
   if (loading) return <div className="flex justify-center py-32"><Loader2 className="animate-spin text-primary" size={48} /></div>;
   if (!product) return <div className="text-center py-32 text-2xl font-semibold">Product not found</div>;
 
-  // Check if the current product ID exists inside our global 'favorites' array.
-  const isLiked = favorites.some(f => f.id === product.id);
+  // Check if the current product ID exists inside our global 'favorites' array. safely
+  const isLiked = favorites?.some(f => f.id === product.id);
 
   // Toggles the heart button. If it's already liked, it deletes it from the database. If not, it adds it.
   const handleFavorite = async () => {
@@ -60,7 +61,6 @@ export default function ProductDetail() {
     }
   };
 
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const handleAddToCartClick = () => {
     if (!user) {
