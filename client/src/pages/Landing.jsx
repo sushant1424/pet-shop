@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import useStore from '../store/useStore';
 import api from '../lib/api';
 import ProductCard from '../components/ProductCard';
+import Footer from '../components/Footer';
 import { Cat, Dog, Fish, Bird, Rabbit } from 'lucide-react';
 import { getImageUrl } from '../lib/imageUrl';
 
@@ -28,7 +29,8 @@ export default function Landing() {
   }, []);
 
   return (
-    <div className="bg-[#fffdf9] font-sans text-[#332a21] pb-24 overflow-hidden relative">
+    <>
+    <div className="bg-[#fffdf9] font-sans text-[#332a21] overflow-hidden relative min-h-screen">
       {/* Decorative Blob */}
       <div className="absolute top-0 right-0 w-[50vw] h-[700px] bg-[#fdf2e3] rounded-bl-[200px] -z-10 opacity-60"></div>
 
@@ -120,7 +122,7 @@ export default function Landing() {
       </section>
 
       {/* New Arrivals */}
-      <section className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 mb-12">
+      <section className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 mb-24">
         <div className="text-center mb-10">
           <h2 className="text-3xl font-black uppercase tracking-widest text-[#2d2217] mb-8">New Arrivals</h2>
         </div>
@@ -133,5 +135,7 @@ export default function Landing() {
         )}
       </section>
     </div>
+    <Footer />
+    </>
   );
 }

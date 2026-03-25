@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, Home, Users, Box, ShoppingBag, LogOut, BarChart, Settings } from 'lucide-react';
+import { Loader2, Home, Users, Box, ShoppingBag, LogOut, BarChart, Settings, Megaphone } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../lib/api';
 import useStore from '../store/useStore';
@@ -13,6 +13,7 @@ import ProductsTab from '../components/admin/tabs/ProductsTab';
 import OrdersTab from '../components/admin/tabs/OrdersTab';
 import AnalyticsTab from '../components/admin/tabs/AnalyticsTab';
 import SettingsTab from '../components/admin/tabs/SettingsTab';
+import CmsTab from '../components/admin/tabs/CmsTab';
 
 /**
  * Master AdminPanel Orchestrator Component
@@ -94,6 +95,7 @@ export default function AdminPanel() {
     { id: 'users', icon: Users, label: 'Users' },
     { id: 'orders', icon: ShoppingBag, label: 'Orders' },
     { id: 'products', icon: Box, label: 'Products' },
+    { id: 'cms', icon: Megaphone, label: 'Content CMS' },
     { id: 'analytics', icon: BarChart, label: 'Analytics' },
     { id: 'settings', icon: Settings, label: 'Settings' },
   ];
@@ -104,9 +106,6 @@ export default function AdminPanel() {
       {/* LEFT SIDEBAR AREA */}
       <aside className="w-64 bg-white border-r border-[#e5e7eb] flex flex-col shrink-0">
         <div className="h-16 flex items-center px-6 border-b border-[#e5e7eb] shrink-0">
-          <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center mr-3">
-             <span className="text-white font-black text-sm">P</span>
-          </div>
           <span className="font-extrabold text-xl tracking-tight text-slate-900">PawMart</span>
         </div>
         
@@ -126,7 +125,14 @@ export default function AdminPanel() {
         </div>
 
         <div className="p-4 border-t border-[#e5e7eb] shrink-0">
-          <button onClick={() => { logout(); navigate('/'); }} className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold text-slate-500 border border-[#e5e7eb] hover:bg-slate-50 transition-colors">
+          <button 
+            onClick={() => setActionConfirm({
+              title: 'Confirm Logout',
+              message: 'Are you sure you want to end your administrative session?',
+              onConfirm: () => { logout(); navigate('/'); setActionConfirm(null); }
+            })} 
+            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold text-slate-500 border border-[#e5e7eb] hover:bg-slate-50 transition-colors"
+          >
             <LogOut size={16}/> Logout
           </button>
         </div>
@@ -137,7 +143,7 @@ export default function AdminPanel() {
         
         <header className="h-16 flex items-center justify-between px-8 pt-4">
           <h1 className="text-2xl font-bold text-slate-900 capitalize">
-            {activeTab} Management
+            {activeTab === 'cms' ? 'Content Management' : `${activeTab} Management`}
           </h1>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3 bg-white pl-2 pr-4 py-1.5 rounded-full border border-slate-200 shadow-sm cursor-pointer hover:bg-slate-50 transition-colors">
@@ -160,6 +166,7 @@ export default function AdminPanel() {
               {activeTab === 'users' && <UsersTab users={usersList} fetchData={fetchData} setActionConfirm={setActionConfirm} setDeleteConfirm={setDeleteConfirm} />}
               {activeTab === 'products' && <ProductsTab products={products} fetchData={fetchData} setActionConfirm={setActionConfirm} setDeleteConfirm={setDeleteConfirm} />}
               {activeTab === 'orders' && <OrdersTab orders={orders} fetchData={fetchData} setActionConfirm={setActionConfirm} />}
+              {activeTab === 'cms' && <CmsTab />}
               {activeTab === 'analytics' && <AnalyticsTab orders={orders} products={products} />}
               {activeTab === 'settings' && <SettingsTab />}
             </>

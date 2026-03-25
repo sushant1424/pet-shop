@@ -1,4 +1,5 @@
 import { getImageUrl } from '../../../lib/imageUrl';
+import { Activity } from 'lucide-react';
 
 /**
  * AnalyticsTab Component
@@ -88,6 +89,15 @@ export default function AnalyticsTab({ orders, products }) {
           </div>
         </div>
 
+      </div>
+
+      {/* Bottom Row: Additional Data Table Placeholder for future expansion */}
+      <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-[0_2px_10px_rgb(0,0,0,0.02)]">
+        <h3 className="text-lg font-bold text-slate-900 mb-4">Recent Activity</h3>
+        <div className="bg-slate-50 flex flex-col items-center justify-center py-10 rounded-2xl border border-dashed border-slate-200">
+           <Activity className="text-slate-300 mb-2" size={32} />
+           <p className="text-sm font-medium text-slate-500">More detailed chronological order tracking coming soon.</p>
+        </div>
       </div>
     </div>
   );

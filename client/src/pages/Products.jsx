@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import api from '../lib/api';
 import ProductCard from '../components/ProductCard';
+import Footer from '../components/Footer';
 import { Search, Filter, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const PAGE_SIZE = 12;
@@ -66,6 +67,7 @@ export default function Products() {
   const paginated = products.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
+    <>
     <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row gap-8 py-8 animate-in fade-in duration-300">
       {/* Sidebar Filters */}
       <aside className="w-full md:w-56 lg:w-64 bg-white p-5 rounded-2xl border border-border shadow-sm h-fit shrink-0">
@@ -181,5 +183,7 @@ export default function Products() {
         )}
       </div>
     </div>
+    <Footer />
+    </>
   );
 }
