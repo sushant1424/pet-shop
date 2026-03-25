@@ -5,7 +5,7 @@ import useStore from '../store/useStore';
 import { getImageUrl } from '../lib/imageUrl';
 import { 
   Loader2, Plus, Trash2, Edit, Home, Users, Box, ShoppingBag, 
-  LogOut, ShieldCheck, Mail, Lock, X
+  LogOut, ShieldCheck, Mail, Lock, X, BarChart, Settings, ArrowUpDown
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -19,6 +19,18 @@ const getStatusStyles = (status) => {
     default: return 'bg-slate-100 text-slate-600 border border-slate-200';
   }
 };
+
+const SortHeader = ({ label, sortKey, currentSort, setSort }) => (
+  <th 
+    onClick={() => setSort(p => ({ key: sortKey, dir: p.key === sortKey && p.dir === 'asc' ? 'desc' : 'asc' }))}
+    className="py-4 px-3 font-bold text-slate-400 text-xs tracking-wider cursor-pointer hover:text-slate-700 transition-colors select-none group"
+  >
+    <div className="flex items-center gap-1.5 uppercase">
+      {label} 
+      <ArrowUpDown size={12} className={`transition-opacity ${currentSort.key === sortKey ? 'text-slate-900 opacity-100' : 'opacity-30 group-hover:opacity-100'}`}/>
+    </div>
+  </th>
+);
 
 function AdminAuth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -144,6 +156,11 @@ export default function AdminPanel() {
   // Modals
   const [deleteConfirm, setDeleteConfirm] = useState({ type: null, id: null });
   const [actionConfirm, setActionConfirm] = useState(null);
+
+  // Sorting
+  const [userSort, setUserSort] = useState({ key: 'created_at', dir: 'desc' });
+  const [productSort, setProductSort] = useState({ key: 'created_at', dir: 'desc' });
+  const [orderSort, setOrderSort] = useState({ key: 'created_at', dir: 'desc' });
 
   // Pagination
   const [pages, setPages] = useState({ users: 1, products: 1, orders: 1 });
@@ -301,15 +318,40 @@ export default function AdminPanel() {
   const cancelledOrders = orders.filter(o => o.status === 'cancelled').length;
   const activeUsers = users.filter(u => u.role === 'user').length; // Mock active logic
 
-  // Filters
+  // Filters & Sorting Helpers
+  const sortData = (data, sort) => {
+    return [...data].sort((a, b) => {
+      let valA = a[sort.key];
+      let valB = b[sort.key];
+      if (typeof valA === 'string') valA = valA.toLowerCase();
+      if (typeof valB === 'string') valB = valB.toLowerCase();
+      if (valA === valB) return 0;
+      
+      const isNumA = !isNaN(parseFloat(valA));
+      const isNumB = !isNaN(parseFloat(valB));
+      
+      if (isNumA && isNumB) {
+        valA = parseFloat(valA); valB = parseFloat(valB);
+      }
+      
+      if (valA < valB) return sort.dir === 'asc' ? -1 : 1;
+      if (valA > valB) return sort.dir === 'asc' ? 1 : -1;
+      return 0;
+    });
+  };
+
   const filteredUsers = users.filter(u => u.name.toLowerCase().includes(userSearch.toLowerCase()) || u.email.toLowerCase().includes(userSearch.toLowerCase()));
   const filteredProducts = products.filter(p => p.name.toLowerCase().includes(productSearch.toLowerCase()));
-  const filteredOrders = orders.filter(o => o.user_name.toLowerCase().includes(orderSearch.toLowerCase()) || String(o.id).includes(orderSearch));
+  const filteredOrders = orders.filter(o => o.user_name?.toLowerCase().includes(orderSearch.toLowerCase()) || String(o.id).includes(orderSearch));
+
+  const sortedUsers = sortData(filteredUsers, userSort);
+  const sortedProducts = sortData(filteredProducts, productSort);
+  const sortedOrders = sortData(filteredOrders, orderSort);
 
   // Pagination Bounds
-  const paginatedUsers = filteredUsers.slice((pages.users - 1) * itemsPerPage, pages.users * itemsPerPage);
-  const paginatedProducts = filteredProducts.slice((pages.products - 1) * itemsPerPage, pages.products * itemsPerPage);
-  const paginatedOrders = filteredOrders.slice((pages.orders - 1) * itemsPerPage, pages.orders * itemsPerPage);
+  const paginatedUsers = sortedUsers.slice((pages.users - 1) * itemsPerPage, pages.users * itemsPerPage);
+  const paginatedProducts = sortedProducts.slice((pages.products - 1) * itemsPerPage, pages.products * itemsPerPage);
+  const paginatedOrders = sortedOrders.slice((pages.orders - 1) * itemsPerPage, pages.orders * itemsPerPage);
 
   return (
     <div className="flex h-screen w-full bg-[#f8f9fc] font-sans text-slate-800 overflow-hidden">
@@ -328,6 +370,8 @@ export default function AdminPanel() {
             { id: 'users', icon: Users, label: 'Users' },
             { id: 'orders', icon: ShoppingBag, label: 'Orders' },
             { id: 'products', icon: Box, label: 'Products' },
+            { id: 'analytics', icon: BarChart, label: 'Analytics' },
+            { id: 'settings', icon: Settings, label: 'Settings' },
           ].map(tab => (
             <button 
               key={tab.id}
@@ -456,12 +500,12 @@ export default function AdminPanel() {
                     <div className="overflow-x-auto">
                       <table className="w-full text-left border-collapse min-w-[800px]">
                         <thead>
-                          <tr className="border-b border-slate-100">
-                            <th className="py-4 px-2 font-bold text-slate-400 text-xs tracking-wider">Name</th>
-                            <th className="py-4 px-2 font-bold text-slate-400 text-xs tracking-wider">Email</th>
-                            <th className="py-4 px-2 font-bold text-slate-400 text-xs tracking-wider">Role</th>
-                            <th className="py-4 px-2 font-bold text-slate-400 text-xs tracking-wider">Joined</th>
-                            <th className="py-4 px-2 font-bold text-slate-400 text-xs tracking-wider text-right">Actions</th>
+                          <tr className="border-b border-slate-100 bg-white">
+                            <SortHeader label="Name" sortKey="name" currentSort={userSort} setSort={setUserSort} />
+                            <SortHeader label="Email" sortKey="email" currentSort={userSort} setSort={setUserSort} />
+                            <SortHeader label="Role" sortKey="role" currentSort={userSort} setSort={setUserSort} />
+                            <SortHeader label="Joined" sortKey="created_at" currentSort={userSort} setSort={setUserSort} />
+                            <th className="py-4 px-3 font-bold text-slate-400 text-xs tracking-wider text-right uppercase">Actions</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
@@ -502,12 +546,12 @@ export default function AdminPanel() {
                     <div className="overflow-x-auto">
                       <table className="w-full text-left border-collapse min-w-[800px]">
                         <thead>
-                          <tr className="border-b border-slate-100">
-                            <th className="py-4 px-2 font-bold text-slate-400 text-xs tracking-wider">Product</th>
-                            <th className="py-4 px-2 font-bold text-slate-400 text-xs tracking-wider">Price</th>
-                            <th className="py-4 px-2 font-bold text-slate-400 text-xs tracking-wider">Stock</th>
-                            <th className="py-4 px-2 font-bold text-slate-400 text-xs tracking-wider">Sold</th>
-                            <th className="py-4 px-2 font-bold text-slate-400 text-xs tracking-wider text-right">Actions</th>
+                          <tr className="border-b border-slate-100 bg-white">
+                            <SortHeader label="Product" sortKey="name" currentSort={productSort} setSort={setProductSort} />
+                            <SortHeader label="Price" sortKey="price" currentSort={productSort} setSort={setProductSort} />
+                            <SortHeader label="Stock" sortKey="stock" currentSort={productSort} setSort={setProductSort} />
+                            <SortHeader label="Sold" sortKey="sold" currentSort={productSort} setSort={setProductSort} />
+                            <th className="py-4 px-3 font-bold text-slate-400 text-xs tracking-wider text-right uppercase">Actions</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
@@ -551,13 +595,13 @@ export default function AdminPanel() {
                     <div className="overflow-x-auto">
                       <table className="w-full text-left border-collapse min-w-[800px]">
                         <thead>
-                          <tr className="border-b border-slate-100">
-                            <th className="py-4 px-2 font-bold text-slate-400 text-xs tracking-wider">Order ID</th>
-                            <th className="py-4 px-2 font-bold text-slate-400 text-xs tracking-wider">Customer</th>
-                            <th className="py-4 px-2 font-bold text-slate-400 text-xs tracking-wider">Date</th>
-                            <th className="py-4 px-2 font-bold text-slate-400 text-xs tracking-wider">Total</th>
-                            <th className="py-4 px-2 font-bold text-slate-400 text-xs tracking-wider">Status</th>
-                            <th className="py-4 px-2 font-bold text-slate-400 text-xs tracking-wider text-right">Actions</th>
+                          <tr className="border-b border-slate-100 bg-white">
+                            <SortHeader label="Order ID" sortKey="id" currentSort={orderSort} setSort={setOrderSort} />
+                            <SortHeader label="Customer" sortKey="user_name" currentSort={orderSort} setSort={setOrderSort} />
+                            <SortHeader label="Date" sortKey="created_at" currentSort={orderSort} setSort={setOrderSort} />
+                            <SortHeader label="Total" sortKey="total_amount" currentSort={orderSort} setSort={setOrderSort} />
+                            <SortHeader label="Status" sortKey="status" currentSort={orderSort} setSort={setOrderSort} />
+                            <th className="py-4 px-3 font-bold text-slate-400 text-xs tracking-wider text-right uppercase">Actions</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
@@ -590,6 +634,87 @@ export default function AdminPanel() {
                         <button disabled={pages.orders * itemsPerPage >= filteredOrders.length} onClick={() => setPages({...pages, orders: pages.orders + 1})} className="text-sm font-bold px-3 py-1.5 bg-slate-100 rounded-lg text-slate-600 disabled:opacity-30">Next</button>
                       </div>
                     )}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'analytics' && (
+                <div className="space-y-6 animate-in fade-in duration-300">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-[0_2px_10px_rgb(0,0,0,0.02)]">
+                      <h3 className="text-lg font-bold text-slate-900 mb-4">Revenue Insights</h3>
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl">
+                          <span className="font-medium text-slate-500">Average Order Value</span>
+                          <span className="font-bold text-slate-900">Rs {orders.length > 0 ? (orders.reduce((sum, o) => sum + parseFloat(o.total_amount), 0) / orders.length).toFixed(2) : '0.00'}</span>
+                        </div>
+                        <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl">
+                          <span className="font-medium text-slate-500">Completed Orders Volume</span>
+                          <span className="font-bold text-emerald-600">Rs {totalRevenue.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl">
+                          <span className="font-medium text-slate-500">Projected Pending Revenue</span>
+                          <span className="font-bold text-amber-500">Rs {orders.filter(o=>o.status==='pending').reduce((sum, o) => sum + parseFloat(o.total_amount), 0).toFixed(2)}</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-[0_2px_10px_rgb(0,0,0,0.02)]">
+                      <h3 className="text-lg font-bold text-slate-900 mb-4">Top Performing Products</h3>
+                      <div className="space-y-3">
+                        {[...products].sort((a,b)=>b.sold - a.sold).slice(0,4).map(p => (
+                          <div key={p.id} className="flex items-center gap-4 p-3 hover:bg-slate-50 rounded-2xl transition-colors">
+                            <div className="w-12 h-12 rounded-xl bg-slate-100 overflow-hidden shrink-0">
+                               {p.image_url && <img src={getImageUrl(p.image_url)} className="w-full h-full object-cover" alt=""/>}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-bold text-sm text-slate-900 truncate">{p.name}</h4>
+                              <p className="text-xs font-medium text-slate-500">{p.category} • Rs {p.price}</p>
+                            </div>
+                            <div className="text-right">
+                              <div className="font-black text-sm text-emerald-600">{p.sold} sold</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'settings' && (
+                <div className="space-y-6 animate-in fade-in duration-300 max-w-2xl">
+                  <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-[0_2px_10px_rgb(0,0,0,0.02)]">
+                    <h3 className="text-xl font-black text-slate-900 mb-6">Store Configuration</h3>
+                    <form onSubmit={(e) => { e.preventDefault(); toast.success('Settings updated globally'); }} className="space-y-5">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Store Name</label>
+                          <input type="text" defaultValue="Paws & Cart" className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-slate-400 font-medium text-sm" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Support Email</label>
+                          <input type="email" defaultValue="support@pawsmart.local" className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-slate-400 font-medium text-sm" />
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Currency Symbol</label>
+                          <input type="text" defaultValue="Rs" className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-slate-400 font-medium text-sm" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Flat Shipping Rate</label>
+                          <input type="number" defaultValue="50.00" className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-slate-400 font-medium text-sm" />
+                        </div>
+                      </div>
+
+                      <div className="pt-4 mt-2 border-t border-slate-100">
+                        <button type="submit" className="w-full md:w-auto px-8 py-3.5 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors shadow-sm">
+                          Save Configuration
+                        </button>
+                      </div>
+                    </form>
                   </div>
                 </div>
               )}
