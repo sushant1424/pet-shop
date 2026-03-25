@@ -7,25 +7,33 @@ import { Search, Filter, Loader2, ChevronLeft, ChevronRight } from 'lucide-react
 const PAGE_SIZE = 12;
 
 export default function Products() {
+  // useState holds generic memory. We store our loaded products, loading status, and current page here.
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchParams, setSearchParams] = useSearchParams();
   const [page, setPage] = useState(1);
+  
+  // useSearchParams lets us read and write to the URL (e.g., mysite.com/products?category=Food)
+  // This allows users to bookmark and share filtered links!
+  const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState(searchParams.get('search') || '');
 
+  // Extract the current filters from the URL bar
   const categoryParam = searchParams.get('category') || '';
   const petTypeParam = searchParams.get('pet_type') || '';
 
+  // This function builds a dynamic URL based on the user's active filters and fetches from Express
   const fetchProducts = async () => {
     setLoading(true);
     try {
+      // URLSearchParams automatically handles weird characters (like spaces becoming %20)
       const params = new URLSearchParams();
       if (categoryParam) params.append('category', categoryParam);
       if (petTypeParam) params.append('pet_type', petTypeParam);
       if (searchParams.get('search')) params.append('search', searchParams.get('search'));
+      
       const res = await api.get(`/products?${params.toString()}`);
       setProducts(res.data);
-      setPage(1);
+      setPage(1); // Always go back to page 1 when new filters are applied
     } catch (err) {
       console.error(err);
     } finally {
@@ -33,16 +41,19 @@ export default function Products() {
     }
   };
 
+  // The 'Dependency Array' tells React to re-run fetchProducts() anytime the URL parameters change
   useEffect(() => { fetchProducts(); }, [categoryParam, petTypeParam, searchParams.get('search')]);
 
+  // Modifies the URL bar instantly when a user clicks a left-sidebar radio button
   const handleFilter = (key, value) => {
     const newParams = new URLSearchParams(searchParams);
     if (value) newParams.set(key, value); else newParams.delete(key);
-    newParams.delete('search');
+    newParams.delete('search'); // Clear text search when clicking a hard category
     setSearch('');
     setSearchParams(newParams);
   };
 
+  // Called when the user hits 'Enter' in the search bar
   const handleSearch = (e) => {
     e.preventDefault();
     const newParams = new URLSearchParams(searchParams);
@@ -50,7 +61,7 @@ export default function Products() {
     setSearchParams(newParams);
   };
 
-  // Pagination
+  // Pagination Logic: We slice the master 100+ product array into smaller chunks of 12 for performance
   const totalPages = Math.ceil(products.length / PAGE_SIZE);
   const paginated = products.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 

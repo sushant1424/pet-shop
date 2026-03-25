@@ -12,8 +12,11 @@ export default function Cart() {
   const [confirmModal, setConfirmModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState(null);
 
+  // Calculate the total cart value using the reduce() function
   const totalAmount = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
+  // This function runs when the user clicks 'Proceed to Checkout'. 
+  // It checks if they are logged in and have a shipping address.
   const triggerCheckout = () => {
     if (!user) {
       toast.error("Please login to checkout");
@@ -28,6 +31,7 @@ export default function Cart() {
     setConfirmModal(true);
   };
 
+  // If the user passes the checks, this saves the cart items to our database as an official Order.
   const handleCheckout = async () => {
     try {
       setCheckoutLoading(true);
@@ -47,6 +51,7 @@ export default function Cart() {
     }
   };
 
+  // Removes a specific item from the shopping cart globally using our Zustand store.
   const confirmDelete = () => {
     if (deleteModal) {
       removeFromCart(deleteModal);

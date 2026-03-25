@@ -1,96 +1,69 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api, { SERVER_URL } from '../lib/api';
-import useStore from '../store/useStore';
-import ProductCard from '../components/ProductCard';
-import { Package, Heart, Loader2, User as UserIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Package, Heart, Loader2, User as UserIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
+import api from '../lib/api';
+import useStore from '../store/useStore';
 
-const getStatusStyles = (status) => {
-  switch(status) {
-    case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-    case 'processing': return 'bg-blue-100 text-blue-800 border-blue-200';
-    case 'deployed': return 'bg-indigo-100 text-indigo-800 border-indigo-200';
-    case 'completed': return 'bg-green-100 text-green-800 border-green-200';
-    case 'cancelled': return 'bg-red-100 text-red-800 border-red-200';
-    default: return 'bg-secondary text-secondary-foreground border-border';
-  }
-};
+// We import the smaller, modular pieces of our Dashboard so this file doesn't get thousands of lines long
+import OrdersTab from '../components/dashboard/OrdersTab';
+import FavoritesTab from '../components/dashboard/FavoritesTab';
+import ProfileTab from '../components/dashboard/ProfileTab';
 
+/**
+ * Dashboard Component
+ * The main user portal where customers can see their orders and update their profile.
+ * We use state to track which "Tab" is currently selected.
+ */
 export default function Dashboard() {
-  const { user, setAuth, favorites } = useStore();
+  // Pull our global user object from Zustand (our global state manager)
+  const { user, favorites } = useStore();
   const navigate = useNavigate();
+  
+  // Local state for the Dashboard
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('orders');
-  const [cancelModal, setCancelModal] = useState(null);
-  const [profileForm, setProfileForm] = useState({ name: '', shipping_address: '' });
+  const [activeTab, setActiveTab] = useState('orders'); // Defaults to showing "orders" first
 
-  // Pagination states
-  const [ordersPage, setOrdersPage] = useState(1);
-  const [favoritesPage, setFavoritesPage] = useState(1);
-  const itemsPerPage = 5;
-
+  // useEffect runs code automatically when the page loads
   useEffect(() => {
-    if (user) {
-      setProfileForm({ name: user.name || '', shipping_address: user.shipping_address || '' });
-    }
-  }, [user]);
-
-  useEffect(() => {
+    // Security check: If there is no user logged in, kick them back to the login page immediately
     if (!user) {
       navigate('/login');
       return;
     }
     
+    // We create a fast async function to download their order history
     const fetchData = async () => {
       try {
         const ordersRes = await api.get('/orders');
+        // Save the downloaded orders into our local 'orders' state variable
         setOrders(ordersRes.data);
       } catch (err) {
         toast.error('Failed to load orders');
-        console.error(err);
       } finally {
+        // Hide the spinning circle once the download finishes or fails
         setLoading(false);
       }
     };
+    
+    // Execute the download
     fetchData();
-  }, [user, navigate]);
+  }, [user, navigate]); // The array [] tells React to only re-run this if `user` or `navigate` changes
 
-  const handleCancelOrder = async () => {
-    if (!cancelModal) return;
-    try {
-      await api.put(`/orders/${cancelModal}/cancel`);
-      setOrders(orders.map(o => o.id === cancelModal ? { ...o, status: 'cancelled' } : o));
-      toast.success('Order cancelled successfully', { duration: 4000 });
-    } catch (err) {
-      toast.error('Failed to cancel order');
-    }
-    setCancelModal(null);
-  };
-
-  const handleUpdateProfile = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await api.put(`/users/${user.id}`, profileForm);
-      setAuth({ ...user, ...res.data }, localStorage.getItem('token'));
-      toast.success('Profile updated securely');
-    } catch (err) {
-      toast.error('Failed to update profile');
-    }
-  };
-
-  if (loading) return <div className="flex justify-center py-32"><Loader2 className="animate-spin text-primary" size={48} /></div>;
-
-  // Pagination Logic
-  const paginatedOrders = orders.slice((ordersPage - 1) * itemsPerPage, ordersPage * itemsPerPage);
-  const totalOrdersPages = Math.ceil(orders.length / itemsPerPage);
-
-  const paginatedFavorites = favorites.slice((favoritesPage - 1) * 6, favoritesPage * 6); // 6 per page for grid
-  const totalFavoritesPages = Math.ceil(favorites.length / 6);
+  // Renders a loading circle while `loading` is true
+  if (loading) {
+    return (
+      <div className="flex justify-center py-32">
+        <Loader2 className="animate-spin text-primary" size={48} />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in">
+      
+      {/* Top Banner: User Profile Overview */}
       <div className="bg-card rounded-2xl p-8 border border-border shadow-sm mb-8 flex items-center gap-6">
         <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center text-primary text-3xl font-bold uppercase shrink-0">
           {user?.name.charAt(0)}
@@ -101,15 +74,16 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Navigation Tabs (Clicking these changes the 'activeTab' state) */}
       <div className="flex gap-4 border-b border-border mb-8 overflow-x-auto whitespace-nowrap hide-scroll">
         <button 
-          onClick={() => { setActiveTab('orders'); setOrdersPage(1); }}
+          onClick={() => setActiveTab('orders')}
           className={`pb-4 px-4 font-semibold text-lg transition-colors border-b-2 ${activeTab === 'orders' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
         >
           <div className="flex items-center gap-2"><Package size={20} /> Order History</div>
         </button>
         <button 
-          onClick={() => { setActiveTab('favorites'); setFavoritesPage(1); }}
+          onClick={() => setActiveTab('favorites')}
           className={`pb-4 px-4 font-semibold text-lg transition-colors border-b-2 ${activeTab === 'favorites' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
         >
           <div className="flex items-center gap-2"><Heart size={20} /> Favorites ({favorites.length})</div>
@@ -122,132 +96,17 @@ export default function Dashboard() {
         </button>
       </div>
 
-      {activeTab === 'orders' && (
-        <div className="space-y-6">
-          {orders.length === 0 ? (
-            <div className="text-center py-16 bg-card rounded-xl border border-border">
-              <Package size={48} className="mx-auto text-muted-foreground opacity-20 mb-4" />
-              <p className="text-xl font-medium text-muted-foreground">No orders found.</p>
-            </div>
-          ) : (
-            <>
-              {paginatedOrders.map(order => (
-                <div key={order.id} className="bg-card p-6 rounded-2xl border border-border shadow-sm">
-                  <div className="flex justify-between items-start mb-4 pb-4 border-b border-border text-sm">
-                    <div>
-                      <span className="text-muted-foreground">Order ID:</span> <span className="font-bold border border-border px-2 py-0.5 rounded-md ml-2">#{1000 + parseInt(order.id)}</span>
-                      <span className="mx-4 text-border hidden sm:inline">|</span>
-                      <br className="sm:hidden" />
-                      <span className="text-muted-foreground mt-2 sm:mt-0 inline-block">Date:</span> <span className="font-medium mr-4">{new Date(order.created_at).toLocaleDateString()}</span>
-                      <span className={`px-3 py-1 border rounded-full text-[11px] font-bold uppercase tracking-wider ${getStatusStyles(order.status)}`}>{order.status}</span>
-                    </div>
-                    <div className="text-right flex flex-col items-end gap-2 shrink-0">
-                      <div>
-                          <span className="text-muted-foreground">Total:</span> <span className="font-bold text-lg text-primary ml-1">Rs {parseFloat(order.total_amount).toFixed(2)}</span>
-                      </div>
-                      {order.status === 'pending' && (
-                          <button onClick={() => setCancelModal(order.id)} className="text-sm font-bold text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded-md transition-colors">Cancel Order</button>
-                      )}
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    {order.items?.map((item, idx) => (
-                      <div key={idx} className="flex justify-between items-center bg-muted/30 p-3 rounded-lg border border-border/50">
-                         <div className="font-medium flex items-center gap-3">
-                           {item.image_url ? (
-                             <img src={`${SERVER_URL}${item.image_url}`} alt={item.product_name} className="w-10 h-10 object-cover rounded-md border border-border" />
-                           ) : (
-                             <div className="w-10 h-10 bg-slate-200 rounded-md"></div>
-                           )}
-                           <span className="line-clamp-1">{item.product_name || `Product ID: ${item.product_id}`}</span>
-                         </div>
-                         <div className="text-muted-foreground font-medium shrink-0 ml-4">
-                           Qty: {item.quantity} × Rs {parseFloat(item.price).toFixed(2)}
-                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-              
-              {/* Pagination Controls */}
-              {totalOrdersPages > 1 && (
-                <div className="flex justify-center items-center gap-4 mt-8 pt-4 border-t border-border">
-                  <button onClick={() => setOrdersPage(p => Math.max(1, p - 1))} disabled={ordersPage === 1} className="p-2 border border-border rounded-lg bg-card hover:bg-muted disabled:opacity-50 transition-colors"><ChevronLeft size={20} /></button>
-                  <span className="font-semibold text-sm">Page {ordersPage} of {totalOrdersPages}</span>
-                  <button onClick={() => setOrdersPage(p => Math.min(totalOrdersPages, p + 1))} disabled={ordersPage === totalOrdersPages} className="p-2 border border-border rounded-lg bg-card hover:bg-muted disabled:opacity-50 transition-colors"><ChevronRight size={20} /></button>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      )}
-
-      {activeTab === 'favorites' && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {favorites.length === 0 ? (
-              <div className="col-span-full text-center py-16 bg-card rounded-xl border border-border">
-                <Heart size={48} className="mx-auto text-muted-foreground opacity-20 mb-4" />
-                <p className="text-xl font-medium text-muted-foreground">No favorites yet.</p>
-              </div>
-            ) : (
-              paginatedFavorites.map(fav => <ProductCard key={fav.id} product={fav} />)
-            )}
-          </div>
-          
-          {/* Pagination Controls */}
-          {totalFavoritesPages > 1 && (
-            <div className="flex justify-center items-center gap-4 pt-8">
-              <button onClick={() => setFavoritesPage(p => Math.max(1, p - 1))} disabled={favoritesPage === 1} className="p-2 border border-border rounded-lg bg-card hover:bg-muted disabled:opacity-50 transition-colors"><ChevronLeft size={20} /></button>
-              <span className="font-semibold text-sm">Page {favoritesPage} of {totalFavoritesPages}</span>
-              <button onClick={() => setFavoritesPage(p => Math.min(totalFavoritesPages, p + 1))} disabled={favoritesPage === totalFavoritesPages} className="p-2 border border-border rounded-lg bg-card hover:bg-muted disabled:opacity-50 transition-colors"><ChevronRight size={20} /></button>
-            </div>
-          )}
-        </div>
-      )}
-
-      {activeTab === 'profile' && (
-        <div className="max-w-lg">
-          <form onSubmit={handleUpdateProfile} className="space-y-6 bg-card p-6 rounded-2xl border border-border shadow-sm">
-             <div>
-                <label className="block text-sm font-semibold mb-2">Full Name</label>
-                <input 
-                  type="text" 
-                  value={profileForm.name} 
-                  onChange={e => setProfileForm({...profileForm, name: e.target.value})}
-                  className="w-full bg-secondary border-none p-4 rounded-xl font-medium outline-none focus:ring-2 focus:ring-primary/20"
-                />
-             </div>
-             <div>
-                <label className="block text-sm font-semibold mb-2">Shipping Address</label>
-                <textarea 
-                  value={profileForm.shipping_address} 
-                  onChange={e => setProfileForm({...profileForm, shipping_address: e.target.value})}
-                  placeholder="Enter your complete delivery address"
-                  className="w-full bg-secondary border-none p-4 rounded-xl font-medium outline-none focus:ring-2 focus:ring-primary/20 h-32 resize-none"
-                />
-             </div>
-             <button type="submit" className="bg-primary text-white font-bold py-3 px-8 rounded-xl shadow-md hover:scale-105 transition-transform">
-                Save Changes
-             </button>
-          </form>
-        </div>
-      )}
-
-      {/* Confirmation Dialog mapped manually to avoid installing deep packages */}
-      {cancelModal && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 animate-in fade-in" onClick={() => setCancelModal(null)}>
-           <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl scale-in-center" onClick={(e) => e.stopPropagation()}>
-              <h3 className="text-2xl font-black mb-3 text-slate-900">Cancel Order?</h3>
-              <p className="text-slate-500 mb-8 font-medium">Are you sure you want to cancel Order <span className="font-bold border border-slate-200 px-1 py-0.5 rounded">#{1000 + parseInt(cancelModal)}</span>? This action cannot be undone.</p>
-              <div className="flex gap-4">
-                 <button onClick={() => setCancelModal(null)} className="flex-1 py-3 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors">Go Back</button>
-                 <button onClick={handleCancelOrder} className="flex-1 py-3 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 shadow-md transition-colors">Yes, Cancel</button>
-              </div>
-           </div>
-        </div>
-      )}
+      {/* 
+        Below we use "Conditional Rendering" (&&).
+        If activeTab === 'orders' is true, it renders the <OrdersTab /> component.
+        We pass data down to these components using "props", like 'orders={orders}'.
+      */}
+      {activeTab === 'orders' && <OrdersTab orders={orders} setOrders={setOrders} />}
+      
+      {activeTab === 'favorites' && <FavoritesTab favorites={favorites} />}
+      
+      {activeTab === 'profile' && <ProfileTab />}
+      
     </div>
   );
 }

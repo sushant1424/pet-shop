@@ -15,6 +15,7 @@ export default function ProductDetail() {
   
   const { addToCart, user, favorites, addFavorite, removeFavorite } = useStore();
 
+  // We fetch the specific product details from our Express database using the ID from the URL.
   useEffect(() => {
     const fetchProduct = async () => {
       try {
@@ -34,8 +35,10 @@ export default function ProductDetail() {
   if (loading) return <div className="flex justify-center py-32"><Loader2 className="animate-spin text-primary" size={48} /></div>;
   if (!product) return <div className="text-center py-32 text-2xl font-semibold">Product not found</div>;
 
+  // Check if the current product ID exists inside our global 'favorites' array.
   const isLiked = favorites.some(f => f.id === product.id);
 
+  // Toggles the heart button. If it's already liked, it deletes it from the database. If not, it adds it.
   const handleFavorite = async () => {
     if (!user) {
       toast.error('Please login to save favorites');
@@ -67,6 +70,7 @@ export default function ProductDetail() {
     setShowConfirmModal(true);
   };
 
+  // Takes the current quantity selected and adds it to our global shopping cart state.
   const confirmAddToCart = () => {
     addToCart(product, quantity);
     setShowConfirmModal(false);

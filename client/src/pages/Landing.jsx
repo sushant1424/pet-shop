@@ -16,10 +16,13 @@ const PET_TYPES = [
 
 export default function Landing() {
   const { user } = useStore();
+  // State variables act as memory. We store our products here after they download.
   const [bestSelling, setBestSelling] = useState([]);
   const [newArrivals, setNewArrivals] = useState([]);
 
+  // useEffect with an empty array [] means "Run this code exactly once when the page loads"
   useEffect(() => {
+    // We send two separate requests to our Express server to get the top products
     api.get('/products/bestsellers').then(res => setBestSelling(res.data)).catch(() => {});
     api.get('/products/new').then(res => setNewArrivals(res.data)).catch(() => {});
   }, []);
