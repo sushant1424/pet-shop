@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import useStore from '../store/useStore';
-import api from '../lib/api';
+import api, { SERVER_URL } from '../lib/api';
 import { Trash2, ShoppingBag, ArrowRight } from 'lucide-react';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
@@ -81,7 +81,7 @@ export default function Cart() {
             <div key={item.id} className="flex items-center p-4 bg-card rounded-lg border border-border shadow-sm hover:shadow transition-shadow">
               <div className="w-24 h-24 bg-muted rounded-md border border-border overflow-hidden mr-4 shrink-0 relative">
                 {item.image_url ? (
-                  <img src={`http://localhost:5000${item.image_url}`} alt={item.name} className="w-full h-full object-cover" />
+                  <img src={`${SERVER_URL}${item.image_url}`} alt={item.name} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">No Image</div>
                 )}

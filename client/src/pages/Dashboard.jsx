@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../lib/api';
+import api, { SERVER_URL } from '../lib/api';
 import useStore from '../store/useStore';
 import ProductCard from '../components/ProductCard';
 import { Package, Heart, Loader2, User as UserIcon, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -155,7 +155,7 @@ export default function Dashboard() {
                       <div key={idx} className="flex justify-between items-center bg-muted/30 p-3 rounded-lg border border-border/50">
                          <div className="font-medium flex items-center gap-3">
                            {item.image_url ? (
-                             <img src={`http://localhost:5000${item.image_url}`} alt={item.product_name} className="w-10 h-10 object-cover rounded-md border border-border" />
+                             <img src={`${SERVER_URL}${item.image_url}`} alt={item.product_name} className="w-10 h-10 object-cover rounded-md border border-border" />
                            ) : (
                              <div className="w-10 h-10 bg-slate-200 rounded-md"></div>
                            )}

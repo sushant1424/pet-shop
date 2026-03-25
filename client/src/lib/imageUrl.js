@@ -4,8 +4,14 @@
  * - If local (/uploads/...), prefix with the backend URL.
  * - If null/undefined, return null.
  */
-export function getImageUrl(imageUrl) {
+import { SERVER_URL } from './api';
+
+export const getImageUrl = (imageUrl) => {
   if (!imageUrl) return null;
-  if (imageUrl.startsWith('http')) return imageUrl;
-  return `http://localhost:5000${imageUrl}`;
-}
+  // If it's already an absolute URL, return it
+  if (imageUrl.startsWith('http')) {
+    return imageUrl;
+  }
+  // Otherwise, construct the full URL combining backend and image
+  return `${SERVER_URL}${imageUrl}`;
+};
