@@ -1,5 +1,6 @@
 import { getImageUrl } from '../../../lib/imageUrl';
 import { Activity } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from 'recharts';
 
 /**
  * AnalyticsTab Component
@@ -28,6 +29,19 @@ export default function AnalyticsTab({ orders, products }) {
   const topProducts = [...products]
     .sort((a, b) => b.sold - a.sold)
     .slice(0, 4);
+
+  // Group products by category to determine revenue/sales performance
+  const categorySales = products.reduce((acc, p) => {
+    acc[p.category] = (acc[p.category] || 0) + (p.sold || 0);
+    return acc;
+  }, {});
+
+  const categoryPerformanceData = Object.keys(categorySales).map(cat => ({
+    name: cat,
+    sales: categorySales[cat]
+  }));
+
+  const COLORS = ['#10b981', '#f59e0b', '#3b82f6', '#8b5cf6', '#ef4444'];
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
@@ -91,12 +105,33 @@ export default function AnalyticsTab({ orders, products }) {
 
       </div>
 
-      {/* Bottom Row: Additional Data Table Placeholder for future expansion */}
+      {/* Bottom Row: Real Data Chart */}
       <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-[0_2px_10px_rgb(0,0,0,0.02)]">
-        <h3 className="text-lg font-bold text-slate-900 mb-4">Recent Activity</h3>
-        <div className="bg-slate-50 flex flex-col items-center justify-center py-10 rounded-2xl border border-dashed border-slate-200">
-           <Activity className="text-slate-300 mb-2" size={32} />
-           <p className="text-sm font-medium text-slate-500">More detailed chronological order tracking coming soon.</p>
+        <h3 className="text-lg font-bold text-slate-900 mb-4">Top Performing Categories</h3>
+        <div className="h-[300px] w-full">
+          {categoryPerformanceData.length > 0 ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={categoryPerformanceData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} allowDecimals={false} />
+                <Tooltip 
+                  cursor={{ fill: '#f8fafc' }}
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}
+                  formatter={(value) => [value, 'Items Sold']}
+                />
+                <Bar dataKey="sales" radius={[6, 6, 0, 0]}>
+                  {categoryPerformanceData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-full text-slate-400 font-medium">
+              No categories available for charting
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -1,19 +1,38 @@
+import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
+import { Loader2 } from 'lucide-react';
+import api from '../../../lib/api';
 
-/**
- * SettingsTab Component
- * A functional UI mockup for global admin settings.
- * It demonstrates how forms work in React.
- */
 export default function SettingsTab() {
-  
-  // handleSubmit is called when the user clicks 'Save Configuration'
-  // e.preventDefault() stops the page from refreshing when the form submits
-  const handleSubmit = (e) => {
+  const [loading, setLoading] = useState(true);
+  const [config, setConfig] = useState({
+    name: 'Paws & Cart',
+    supportEmail: 'support@pawsmart.local',
+    currency: 'Rs',
+    shippingRate: 50
+  });
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await api.get('/settings');
+        if (res.data.store_config) setConfig(res.data.store_config);
+      } catch (err) { } finally { setLoading(false); }
+    };
+    fetchSettings();
+  }, []);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Show a success popup to the user
-    toast.success('Settings updated globally');
+    try {
+      await api.put('/settings/store_config', config);
+      toast.success('Settings updated globally');
+    } catch (err) {
+      toast.error('Failed to update settings');
+    }
   };
+
+  if (loading) return <div className="p-8 flex justify-center"><Loader2 className="animate-spin text-slate-400" /></div>;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300 max-w-2xl">
@@ -30,7 +49,8 @@ export default function SettingsTab() {
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Store Name</label>
               <input 
                 type="text" 
-                defaultValue="Paws & Cart" 
+                value={config.name} 
+                onChange={(e) => setConfig({...config, name: e.target.value})}
                 className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-slate-400 font-medium text-sm" 
               />
             </div>
@@ -38,7 +58,8 @@ export default function SettingsTab() {
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Support Email</label>
               <input 
                 type="email" 
-                defaultValue="support@pawsmart.local" 
+                value={config.supportEmail} 
+                onChange={(e) => setConfig({...config, supportEmail: e.target.value})}
                 className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-slate-400 font-medium text-sm" 
               />
             </div>
@@ -50,7 +71,8 @@ export default function SettingsTab() {
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Currency Symbol</label>
               <input 
                 type="text" 
-                defaultValue="Rs" 
+                value={config.currency} 
+                onChange={(e) => setConfig({...config, currency: e.target.value})}
                 className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-slate-400 font-medium text-sm" 
               />
             </div>
@@ -58,7 +80,8 @@ export default function SettingsTab() {
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Flat Shipping Rate</label>
               <input 
                 type="number" 
-                defaultValue="50.00" 
+                value={config.shippingRate} 
+                onChange={(e) => setConfig({...config, shippingRate: Number(e.target.value)})}
                 className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-slate-400 font-medium text-sm" 
               />
             </div>

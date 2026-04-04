@@ -22,7 +22,7 @@ export default function ProductsTab({ products, fetchData, setActionConfirm, set
   const [editingItem, setEditingItem] = useState(null);
   
   // A single state object holds all the form inputs simultaneously
-  const initialForm = { name: '', description: '', price: '', category: 'Food', pet_type: 'Dog', stock: 100, image_url: '', imageFile: null };
+  const initialForm = { name: '', description: '', price: '', category: 'Food', pet_type: 'Dog', stock: 100, imageFile: null };
   const [form, setForm] = useState(initialForm);
 
   // Filter, Sort, Paginate
@@ -73,15 +73,13 @@ export default function ProductsTab({ products, fetchData, setActionConfirm, set
           pushData.append('stock', form.stock);
           
           if (form.imageFile) pushData.append('image', form.imageFile);
-          else if (form.image_url) pushData.append('image_url', form.image_url);
 
           // If editing an existing ID, use PUT, otherwise use POST
           if (editingItem) {
             if (form.imageFile) await api.put(`/products/${editingItem.id}`, pushData, { headers: { 'Content-Type': 'multipart/form-data' }});
             else await api.put(`/products/${editingItem.id}`, form);
           } else {
-            if (form.imageFile) await api.post('/products', pushData, { headers: { 'Content-Type': 'multipart/form-data' }});
-            else await api.post('/products/with-url', form);
+            await api.post('/products', pushData, { headers: { 'Content-Type': 'multipart/form-data' }});
           }
           
           setShowModal(false);
@@ -97,6 +95,22 @@ export default function ProductsTab({ products, fetchData, setActionConfirm, set
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
+      {/* Top Statistic Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-[0_2px_10px_rgb(0,0,0,0.02)]">
+          <p className="text-sm font-bold text-slate-400 mb-1">Total Products</p>
+          <h4 className="text-3xl font-black text-slate-800">{products.length}</h4>
+        </div>
+        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-[0_2px_10px_rgb(0,0,0,0.02)]">
+          <p className="text-sm font-bold text-emerald-500 mb-1">In Stock</p>
+          <h4 className="text-3xl font-black text-slate-800">{products.filter(p => parseInt(p.stock) >= 10).length}</h4>
+        </div>
+        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-[0_2px_10px_rgb(0,0,0,0.02)]">
+          <p className="text-sm font-bold text-red-500 mb-1">Low or Out of Stock</p>
+          <h4 className="text-3xl font-black text-slate-800">{products.filter(p => parseInt(p.stock) < 10).length}</h4>
+        </div>
+      </div>
+
       <div className="bg-white rounded-3xl border border-slate-100 shadow-[0_2px_10px_rgb(0,0,0,0.02)] p-6">
         
         {/* Top Controls: Search and Add Button */}
@@ -169,11 +183,9 @@ export default function ProductsTab({ products, fetchData, setActionConfirm, set
                   <option>Dog</option><option>Cat</option><option>Bird</option><option>Fish</option><option>Small Pet</option>
                 </select>
               </div>
-              <div className="text-sm font-semibold text-slate-600 mt-2">Product Image</div>
+              <div className="text-sm font-semibold text-slate-600 mt-2">Product Image (Required)</div>
               {/* Type 'file' is used for actual device photo uploads */}
-              <input type="file" accept="image/*" onChange={e=>setForm({...form, imageFile: e.target.files[0]})} className="w-full p-3 bg-slate-50 border border-slate-200 focus:border-slate-400 outline-none rounded-xl text-sm" />
-              <div className="text-xs text-slate-400 text-center">- OR USE URL -</div>
-              <input type="url" value={form.image_url} onChange={e=>setForm({...form, image_url: e.target.value})} placeholder="https://..." className="w-full p-4 bg-slate-50 border border-slate-200 focus:border-slate-400 outline-none rounded-xl" />
+              <input type="file" required={!editingItem} accept="image/*" onChange={e=>setForm({...form, imageFile: e.target.files[0]})} className="w-full p-3 bg-slate-50 border border-slate-200 focus:border-slate-400 outline-none rounded-xl text-sm" />
               <textarea value={form.description} onChange={e=>setForm({...form, description: e.target.value})} placeholder="Format complete product description here..." className="w-full p-4 bg-slate-50 border border-slate-200 focus:border-slate-400 outline-none rounded-xl h-32 resize-none" />
             </div>
             <div className="flex gap-4 mt-6">

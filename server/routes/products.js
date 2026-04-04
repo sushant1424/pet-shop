@@ -16,7 +16,7 @@ const upload = multer({ storage });
 // Get best selling products
 router.get('/bestsellers', async (req, res) => {
   try {
-    const { rows } = await db.query('SELECT * FROM products WHERE sold > 0 ORDER BY sold DESC LIMIT 5');
+    const { rows } = await db.query('SELECT * FROM products ORDER BY sold DESC LIMIT 4');
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: err.message });

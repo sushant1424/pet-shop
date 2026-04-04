@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Package } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api, { SERVER_URL } from '../../lib/api';
+import { getImageUrl } from '../../lib/imageUrl';
 
 /**
  * Visual utility mapping order statuses to their respective Tailwind CSS colors
@@ -24,7 +25,7 @@ const getStatusStyles = (status) => {
 export default function OrdersTab({ orders, setOrders }) {
   // We use page state to handle slicing the array so it doesn't get too long vertically
   const [ordersPage, setOrdersPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 2;
 
   // State to hold the ID of the order currently being cancelled
   const [cancelModal, setCancelModal] = useState(null);
@@ -94,7 +95,7 @@ export default function OrdersTab({ orders, setOrders }) {
                   <div key={idx} className="flex justify-between items-center bg-muted/30 p-3 rounded-lg border border-border/50">
                      <div className="font-medium flex items-center gap-3">
                        {item.image_url ? (
-                         <img src={`${SERVER_URL}${item.image_url}`} alt={item.product_name} className="w-10 h-10 object-cover rounded-md border border-border" />
+                         <img src={getImageUrl(item.image_url)} alt={item.product_name} className="w-10 h-10 object-cover rounded-md border border-border" />
                        ) : (
                          <div className="w-10 h-10 bg-slate-200 rounded-md"></div>
                        )}

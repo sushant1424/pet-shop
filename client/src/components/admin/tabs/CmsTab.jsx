@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { Megaphone, Tag, AlertCircle } from 'lucide-react';
+import { Megaphone, Tag, AlertCircle, Loader2 } from 'lucide-react';
+import api from '../../../lib/api';
 
 export default function CmsTab() {
+  const [loading, setLoading] = useState(true);
   const [hero, setHero] = useState({
     headline: 'Your Pet Deserves the Best',
     subtext: 'From premium food to fun toys — everything your pet needs.',
@@ -22,13 +24,43 @@ export default function CmsTab() {
     type: 'info',
   });
 
-  const handleSaveHero = (e) => { e.preventDefault(); toast.success('Hero saved!'); };
-  const handleSavePromo = (e) => { e.preventDefault(); toast.success('Promo saved!'); };
-  const handleSaveAnnouncement = (e) => { e.preventDefault(); toast.success('Announcement saved!'); };
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await api.get('/settings');
+        if (res.data.cms_hero) setHero(res.data.cms_hero);
+        if (res.data.cms_promo) setPromo(res.data.cms_promo);
+        if (res.data.cms_announcement) setAnnouncement(res.data.cms_announcement);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSettings();
+  }, []);
 
-  const inputCls = 'w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-slate-400 font-medium text-sm transition-colors';
-  const labelCls = 'block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5';
-  const sectionCls = 'bg-white p-6 rounded-3xl border border-slate-100 shadow-[0_2px_10px_rgb(0,0,0,0.02)]';
+  const handleSaveHero = async (e) => { 
+    e.preventDefault(); 
+    try { await api.put('/settings/cms_hero', hero); toast.success('Hero saved!'); } 
+    catch (err) { toast.error('Error saving'); }
+  };
+  const handleSavePromo = async (e) => { 
+    e.preventDefault(); 
+    try { await api.put('/settings/cms_promo', promo); toast.success('Promo saved!'); } 
+    catch (err) { toast.error('Error saving'); }
+  };
+  const handleSaveAnnouncement = async (e) => { 
+    e.preventDefault(); 
+    try { await api.put('/settings/cms_announcement', announcement); toast.success('Announcement saved!'); }
+    catch (err) { toast.error('Error saving'); }
+  };
+
+  const inputCls = 'w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-slate-400 font-medium text-base transition-colors';
+  const labelCls = 'block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2';
+  const sectionCls = 'bg-white p-8 rounded-[2rem] border border-slate-100 shadow-[0_2px_10px_rgb(0,0,0,0.02)]';
+
+  if (loading) return <div className="p-8 flex justify-center"><Loader2 className="animate-spin text-slate-400" /></div>;
 
   return (
     <div className="animate-in fade-in duration-300 max-w-6xl">

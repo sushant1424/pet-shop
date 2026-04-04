@@ -7,6 +7,7 @@ const productRoutes = require('./routes/products');
 const orderRoutes = require('./routes/orders');
 const favoriteRoutes = require('./routes/favorites');
 const userRoutes = require('./routes/users');
+const settingsRoutes = require('./routes/settings');
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/favorites', favoriteRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/settings', settingsRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

@@ -85,7 +85,7 @@ export default function ProductCard({ product }) {
         </button>
 
         {/* Image Container */}
-        <Link to={`/products/${product.id}`} className="w-full h-56 block relative overflow-hidden bg-[#f2f2f2]">
+        <div className="w-full h-56 block relative overflow-hidden bg-[#f2f2f2]">
           {imgSrc ? (
             <img
               src={imgSrc}
@@ -95,7 +95,7 @@ export default function ProductCard({ product }) {
           ) : (
             <div className="w-full h-full flex items-center justify-center text-4xl">🛍️</div>
           )}
-        </Link>
+        </div>
 
         {/* Content */}
         <div className="flex flex-col flex-grow px-5 pb-5 pt-4">
@@ -106,11 +106,11 @@ export default function ProductCard({ product }) {
               )}
               <span className="inline-block text-[#8e8477] text-[11px] font-bold px-2 py-1 bg-slate-50 rounded-full">{product.sold || 0} Sold</span>
             </div>
-            <Link to={`/products/${product.id}`}>
+            <div>
               <h3 className="text-[17px] font-bold text-[#2d2217] leading-tight line-clamp-2 min-h-[44px] group-hover:text-[#bf6f3a] transition-colors">
                 {product.name}
               </h3>
-            </Link>
+            </div>
           </div>
 
           <div className="mt-auto pt-4 flex items-end justify-between gap-2">

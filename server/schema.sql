@@ -44,3 +44,8 @@ CREATE TABLE IF NOT EXISTS favorites (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(user_id, product_id)
 );
+
+CREATE TABLE IF NOT EXISTS app_settings (
+    key VARCHAR(255) PRIMARY KEY,
+    value JSONB NOT NULL
+);

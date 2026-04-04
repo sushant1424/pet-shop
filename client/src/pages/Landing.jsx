@@ -17,15 +17,24 @@ const PET_TYPES = [
 
 export default function Landing() {
   const { user } = useStore();
-  // State variables act as memory. We store our products here after they download.
   const [bestSelling, setBestSelling] = useState([]);
   const [newArrivals, setNewArrivals] = useState([]);
+  const [hero, setHero] = useState({
+    headline: 'Your Pet\\nDeserves the Best',
+    subtext: 'From premium food and cozy clothing to fun toys and essential accessories — everything your furry, feathered, or finned friend needs, all in one place.',
+    ctaLabel: 'Shop Now',
+    badge: 'Get 50% Off On Your First Order'
+  });
 
-  // useEffect with an empty array [] means "Run this code exactly once when the page loads"
   useEffect(() => {
     // We send two separate requests to our Express server to get the top products
     api.get('/products/bestsellers').then(res => setBestSelling(res.data)).catch(() => {});
     api.get('/products/new').then(res => setNewArrivals(res.data)).catch(() => {});
+    api.get('/settings').then(res => {
+      if (res.data.cms_hero) {
+        setHero(res.data.cms_hero);
+      }
+    }).catch(() => {});
   }, []);
 
   return (
@@ -40,17 +49,17 @@ export default function Landing() {
           {/* Left Text */}
           <div className="flex-1 max-w-xl text-center lg:text-left z-10">
             <p className="text-[#bf6f3a] font-bold tracking-widest text-[13px] uppercase mb-4 flex items-center justify-center lg:justify-start gap-2">
-              <span className="w-8 h-px bg-[#bf6f3a]"></span> Get 50% Off On Your First Order
+              <span className="w-8 h-px bg-[#bf6f3a]"></span> {hero.badge}
             </p>
-            <h1 className="text-5xl lg:text-[72px] font-black leading-[1.05] tracking-tight text-[#2d2217] mb-6 drop-shadow-sm">
-              Your Pet<br/>Deserves the Best
+            <h1 className="text-5xl lg:text-[72px] font-black leading-[1.05] tracking-tight text-[#2d2217] mb-6 drop-shadow-sm whitespace-pre-line">
+              {hero.headline}
             </h1>
             <p className="text-[#7d7162] text-base font-medium mb-10 max-w-md mx-auto lg:mx-0 leading-relaxed">
-              From premium food and cozy clothing to fun toys and essential accessories — everything your furry, feathered, or finned friend needs, all in one place.
+              {hero.subtext}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
               <Link to="/products" className="bg-[#bf6f3a] text-white px-8 py-4 rounded-full font-extrabold text-lg hover:bg-[#a65d2f] hover:scale-105 transition-all shadow-xl shadow-[#bf6f3a]/30 text-center">
-                Shop Now
+                {hero.ctaLabel}
               </Link>
               {!user && (
                 <Link to="/signup" className="bg-[#2d2217] text-white px-8 py-4 rounded-full font-extrabold text-lg hover:bg-[#1a140d] hover:scale-105 transition-all shadow-md text-center">

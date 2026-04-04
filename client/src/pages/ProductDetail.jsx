@@ -5,6 +5,7 @@ import useStore from '../store/useStore';
 import { ShoppingCart, Heart, ArrowLeft, Loader2, Box } from 'lucide-react';
 import { getImageUrl } from '../lib/imageUrl';
 import toast from 'react-hot-toast';
+import ProductCard from '../components/ProductCard';
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -13,7 +14,8 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  
+  const [relatedProducts, setRelatedProducts] = useState([]);
+
   const { addToCart, user, favorites, addFavorite, removeFavorite } = useStore();
 
   // We fetch the specific product details from our Express database using the ID from the URL.
@@ -23,6 +25,9 @@ export default function ProductDetail() {
         setLoading(true);
         const res = await api.get(`/products/${id}`);
         setProduct(res.data);
+        // Fetch related products from the same category
+        const relRes = await api.get(`/products?category=${res.data.category}`);
+        setRelatedProducts(relRes.data.filter(p => p.id !== res.data.id).slice(0, 4));
       } catch (err) {
         console.error(err);
       } finally {
@@ -85,7 +90,7 @@ export default function ProductDetail() {
 
       <div className="bg-card rounded-[2rem] shadow-sm border border-border p-6 md:p-10 mb-16 overflow-hidden relative">
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-10 translate-x-1/2 -translate-y-1/2"></div>
-        
+
         <div className="flex flex-col lg:flex-row gap-12">
           {/* Image */}
           <div className="w-full lg:w-1/2">
@@ -106,17 +111,17 @@ export default function ProductDetail() {
               <span className="bg-secondary text-secondary-foreground px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase">{product.category}</span>
               <span className="bg-muted text-muted-foreground px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase">{product.pet_type}</span>
             </div>
-            
+
             <h1 className="text-2xl lg:text-3xl font-extrabold tracking-tight mb-4 text-foreground leading-tight">{product.name}</h1>
-            
+
             <p className="text-2xl font-black text-primary mb-2">Rs {parseFloat(product.price).toFixed(2)}</p>
             <p className="text-sm text-muted-foreground mb-6 font-medium">
-              {parseInt(product.stock) > 0 
+              {parseInt(product.stock) > 0
                 ? <span className="text-green-600 font-semibold">✓ In Stock ({product.sold || 0} sold)</span>
                 : <span className="text-red-500 font-semibold">✗ Out of Stock</span>
               }
             </p>
-            
+
             <div className="text-base text-muted-foreground mb-8 leading-relaxed max-w-xl">
               <p>{product.description || "No description provided for this high-quality product. Your pet will absolutely love it!"}</p>
             </div>
@@ -131,20 +136,19 @@ export default function ProductDetail() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3">
-              <button 
+              <button
                 onClick={handleAddToCartClick}
                 disabled={parseInt(product.stock) <= 0}
                 className="flex-[2] bg-primary text-primary-foreground py-3 rounded-xl font-bold text-sm hover:bg-primary/90 active:scale-[0.98] transition-all shadow-md flex items-center justify-center disabled:opacity-50"
               >
                 <ShoppingCart className="mr-2" size={18} /> Add to Cart
               </button>
-              <button 
-                onClick={handleFavorite} 
-                className={`flex-1 py-3 rounded-xl transition-all border flex items-center justify-center group shadow-sm font-bold text-sm ${
-                  isLiked 
-                    ? 'bg-red-50 text-red-500 border-red-200 hover:bg-red-100' 
+              <button
+                onClick={handleFavorite}
+                className={`flex-1 py-3 rounded-xl transition-all border flex items-center justify-center group shadow-sm font-bold text-sm ${isLiked
+                    ? 'bg-red-50 text-red-500 border-red-200 hover:bg-red-100'
                     : 'bg-card text-muted-foreground hover:text-red-500 hover:bg-red-50 hover:border-red-100 border-border'
-                }`}
+                  }`}
                 title={isLiked ? 'Remove from favorites' : 'Add to favorites'}
               >
                 <Heart size={20} fill={isLiked ? 'currentColor' : 'none'} className="transition-all" />
@@ -154,17 +158,27 @@ export default function ProductDetail() {
         </div>
       </div>
 
+      {/* Related Products Section */}
+      {relatedProducts.length > 0 && (
+        <div className="mt-16 animate-in slide-in-from-bottom-8 duration-700">
+          <h2 className="text-2xl font-black mb-8 text-foreground">You Might Also Like</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {relatedProducts.map(rp => <ProductCard key={rp.id} product={rp} />)}
+          </div>
+        </div>
+      )}
+
       {/* Confirmation Dialog */}
       {showConfirmModal && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 animate-in fade-in" onClick={() => setShowConfirmModal(false)}>
-           <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl scale-in-center" onClick={(e) => e.stopPropagation()}>
-              <h3 className="text-2xl font-black mb-3 text-slate-900">Add to Cart</h3>
-              <p className="text-slate-500 mb-8 font-medium">Add {quantity}x <span className="text-slate-900 font-bold">{product.name}</span> to your cart for Rs {(parseFloat(product.price) * quantity).toFixed(2)}?</p>
-              <div className="flex gap-4">
-                 <button onClick={() => setShowConfirmModal(false)} className="flex-1 py-3 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors">Cancel</button>
-                 <button onClick={confirmAddToCart} className="flex-1 py-3 bg-[#2d2217] text-white font-bold rounded-xl hover:bg-[#1a140d] shadow-md transition-colors">Confirm</button>
-              </div>
-           </div>
+          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl scale-in-center" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-2xl font-black mb-3 text-slate-900">Add to Cart</h3>
+            <p className="text-slate-500 mb-8 font-medium">Add {quantity}x <span className="text-slate-900 font-bold">{product.name}</span> to your cart for Rs {(parseFloat(product.price) * quantity).toFixed(2)}?</p>
+            <div className="flex gap-4">
+              <button onClick={() => setShowConfirmModal(false)} className="flex-1 py-3 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors">Cancel</button>
+              <button onClick={confirmAddToCart} className="flex-1 py-3 bg-[#2d2217] text-white font-bold rounded-xl hover:bg-[#1a140d] shadow-md transition-colors">Confirm</button>
+            </div>
+          </div>
         </div>
       )}
     </div>
