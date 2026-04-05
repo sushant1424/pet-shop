@@ -1,6 +1,6 @@
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Loader2 } from 'lucide-react';
 
-export default function AnnouncementForm({ announcement, setAnnouncement, onSubmit }) {
+export default function AnnouncementForm({ announcement, setAnnouncement, onSubmit, saving }) {
   const labelCls = 'block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2';
   const inputCls = 'w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-slate-400 font-medium text-base transition-colors';
 
@@ -31,11 +31,21 @@ export default function AnnouncementForm({ announcement, setAnnouncement, onSubm
         </div>
         <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
           <span className="text-xs font-bold text-slate-700">Enable Announcement</span>
-          <button type="button" onClick={() => setAnnouncement(a => ({ ...a, enabled: !a.enabled }))} className={`w-10 h-5 rounded-full transition-colors relative ${announcement.enabled ? 'bg-emerald-500' : 'bg-slate-300'}`}>
+          <button
+            type="button"
+            onClick={() => setAnnouncement(a => ({ ...a, enabled: !a.enabled }))}
+            className={`w-10 h-5 rounded-full transition-colors relative ${announcement.enabled ? 'bg-emerald-500' : 'bg-slate-300'}`}
+          >
             <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${announcement.enabled ? 'left-5' : 'left-0.5'}`} />
           </button>
         </div>
-        <button type="submit" className="w-full py-2.5 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors text-xs">Save Alert</button>
+        <button
+          type="submit"
+          disabled={saving}
+          className="w-full py-2.5 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors text-xs flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          {saving ? <><Loader2 size={14} className="animate-spin" /> Saving…</> : 'Save Alert'}
+        </button>
       </form>
     </div>
   );

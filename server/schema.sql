@@ -49,3 +49,16 @@ CREATE TABLE IF NOT EXISTS app_settings (
     key VARCHAR(255) PRIMARY KEY,
     value JSONB NOT NULL
 );
+
+-- Default CMS settings (safe to re-run — ON CONFLICT does nothing)
+INSERT INTO app_settings (key, value) VALUES
+  ('cms_hero', '{"headline":"Your Pet Deserves the Best","subtext":"From premium food to fun toys — everything your pet needs.","ctaLabel":"Shop Now","badge":"Get 50% Off"}')
+  ON CONFLICT (key) DO NOTHING;
+
+INSERT INTO app_settings (key, value) VALUES
+  ('cms_promo', '{"enabled":true,"message":"Free shipping on all orders above Rs 500!","bgColor":"#bf6f3a"}')
+  ON CONFLICT (key) DO NOTHING;
+
+INSERT INTO app_settings (key, value) VALUES
+  ('cms_announcement', '{"enabled":false,"message":"We are temporarily closed on public holidays.","type":"info"}')
+  ON CONFLICT (key) DO NOTHING;
